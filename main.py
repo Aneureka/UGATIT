@@ -2,6 +2,10 @@ from UGATIT import UGATIT
 import argparse
 from utils import *
 
+from flask import Flask, request, Response, render_template, redirect, session, url_for
+from flask_uploads import UploadSet, configure_uploads, IMAGES, patch_request_class
+
+
 """parsing and configuration"""
 
 def parse_args():
@@ -82,7 +86,7 @@ def main():
     # parse arguments
     args = parse_args()
     if args is None:
-      exit()
+        exit()
 
     # open session
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as sess:
@@ -101,6 +105,11 @@ def main():
         if args.phase == 'test' :
             gan.test()
             print(" [*] Test finished!")
+        
+        if args.phase == 'web' :
+            # TODO start flask app
+            pass
+
 
 if __name__ == '__main__':
     main()

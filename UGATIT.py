@@ -663,3 +663,22 @@ class UGATIT(object) :
                     '../..' + os.path.sep + image_path), self.img_size, self.img_size))
             index.write("</tr>")
         index.close()
+
+    def test_one(self, sample_file):
+        tf.global_variables_initializer().run()
+        
+        self.saver = tf.train.Saver()
+        could_load, _ = self.load(self.checkpoint_dir)
+        self.result_dir = os.path.join(self.result_dir, self.model_dir)
+        check_folder(self.result_dir)
+        if could_load :
+            print(" [*] Load SUCCESS")
+        else :
+            print(" [!] Load failed...")
+        
+        sample_image = np.asarray(load_test_data(sample_file))
+        image_path = os.path.join(self.result_dir, '{0}'.format(os.path.basename(sample_file)))
+        fake_img = self.sess.run(self.test_fake_B, feed_dict = {self.test_domain_A : sample_image})
+        save_images(fake_img, [1, 1], image_path)
+        return image_path
+        

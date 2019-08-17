@@ -102,3 +102,18 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# IDE
+.vscode/
+.idea/
+
+# Project
+checkpoint/
+logs/
+results/
+samples/
+dataset/*
+!dataset/.gitkeep
+
+# Mac OS
+.DS_Store
