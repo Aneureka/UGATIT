@@ -111,6 +111,8 @@ venv.bak/
 checkpoint/
 logs/
 results/
+web_results/
+uploads/
 samples/
 dataset/*
 !dataset/.gitkeep

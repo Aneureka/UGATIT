@@ -78,3 +78,16 @@ def check_folder(log_dir):
 
 def str2bool(x):
     return x.lower() in ('true')
+
+###################################################################
+#                          web support                            #
+###################################################################
+def get_image_size(image_path):
+    img = cv2.imread(image_path)
+    height, width, _ = img.shape
+    return height, width
+
+def resize_image(image_path, h, w):
+    img = cv2.imread(image_path)
+    resized_img = cv2.resize(img, (w, h), interpolation = cv2.INTER_AREA)
+    cv2.imwrite(image_path, resized_img)
