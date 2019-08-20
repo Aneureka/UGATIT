@@ -89,5 +89,17 @@ def get_image_size(image_path):
 
 def resize_image(image_path, h, w):
     img = cv2.imread(image_path)
-    resized_img = cv2.resize(img, (w, h), interpolation = cv2.INTER_AREA)
+    resized_img = cv2.resize(img, (w, h), interpolation=cv2.INTER_AREA)
     cv2.imwrite(image_path, resized_img)
+
+def build_resp(code=0, msg='', data=None):
+    import json
+    result_dict = {}
+    if data is not None:
+        result_dict = {'code': 0, 'data': data}
+    else:
+        result_dict = {'code': code, 'msg': msg}
+    return json.dumps(result_dict)  
+###################################################################
+#                          web support                            #
+###################################################################

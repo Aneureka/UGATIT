@@ -1,34 +1,53 @@
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, send_from_directory, url_for
+from flask_script import Manager, Shell
 import requests
 import json
 import os
-from main import setup_web, eval_web
+from main import setup_for_web, eval_for_web
+from utils import build_resp
+import uuid
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+
+app = Flask(__name__, static_url_path='')
+s2a_model = setup_for_web()
 
 
-# app = Flask(__name__)
+# config goes here
+UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads')
+RESULT_FOLDER = 'results'
+ALLOWED_EXTENSIONS = set(['.txt', '.pdf', '.png', '.jpg', '.jpeg'])
 
 
-# # Some config goes here
-# app.config['UPLOADED_PHOTOS_DEST'] = os.getcwd() + '/uploads'
+@app.route('/s2a/', methods=['GET'])
+def ping2():
+    return 'Ping successfully!'
 
+@app.route('/s2a/ping', methods=['GET'])
+def ping():
+    return 'Ping successfully!'
 
-# @app.route('/ping', methods=['GET'])
-# def ping():
-#     return 'Ping successfully!'
-
-# @app.route('/convert', methods=['POST'])
-# def convert():
-#     # TODO
-#     pass
-
-def test():
-    gan = setup_web()
-    result_image_path = eval_web(gan, 'dataset/selfie2anime/testA/faceu_20170331221722.jpg')
-    result_image_path = eval_web(gan, 'dataset/selfie2anime/testA/faceu_20170331221722.jpg')
-    result_image_path = eval_web(gan, 'dataset/selfie2anime/testA/faceu_20170331221722.jpg')
-    result_image_path = eval_web(gan, 'dataset/selfie2anime/testA/faceu_20170331221722.jpg')
-    result_image_path = eval_web(gan, 'dataset/selfie2anime/testA/faceu_20170331221722.jpg')
-    print(result_image_path)
+@app.route('/s2a/convert', methods=['POST'])
+def convert():
+    # upload
+    if 'file' not in request.files:
+        print('no photo detected')
+        return 'No file detected', 400
+    file = request.files['file']
+    if file.filename == '':
+        return 'No selected file', 400
+    file_ext = os.path.splitext(file.filename)[-1]
+    if file_ext not in ALLOWED_EXTENSIONS:
+        return 'Unsupported file type', 415
+    filename = '%s%s' % (str(uuid.uuid4()), file_ext)
+    file_path = os.path.join(UPLOAD_FOLDER, filename)
+    file.save(file_path)
+    result_image_path = eval_for_web(s2a_model, file_path)
+    return send_from_directory(RESULT_FOLDER, filename)
+    
 
 if __name__ == "__main__":
-    test()
+    manager = Manager(app)
+    manager.add_command("shell", Shell(make_context=dict(app=app)))
+    manager.run()
+

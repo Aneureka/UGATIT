@@ -677,13 +677,11 @@ class UGATIT(object) :
         else :
             print(" [!] Load failed...")
 
-
     def eval(self, sample_file):
         sample_image = np.asarray(load_test_data(sample_file))
         image_path = os.path.join(self.result_dir, '{0}'.format(os.path.basename(sample_file)))
-        fake_img = self.sess.run(self.test_fake_B, feed_dict = {self.test_domain_A : sample_image})
-        save_images(fake_img, [1, 1], image_path)
-        
+        fake_img = self.sess.run(self.test_fake_B, feed_dict = {self.test_domain_A : sample_image})    
+        save_images(fake_img, [1, 1], image_path)      
         resize_image(image_path, *get_image_size(sample_file))
         return image_path
     ###################################################################

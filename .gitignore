@@ -111,11 +111,13 @@ venv.bak/
 checkpoint/
 logs/
 results/
-web_results/
+results*/
 uploads/
 samples/
 dataset/*
 !dataset/.gitkeep
+*.ini
+run*.sh
 
 # Mac OS
 .DS_Store

@@ -1,0 +1,21 @@
+[uwsgi]
+# uwsgi address and port
+socket = 127.0.0.1:8001
+# virtualenv directory
+home = /path/to/workspace/UGATIT-s2a/venv
+# project directory
+pythonpath = /path/to/workspace/UGATIT-s2a
+chdir = /path/to/workspace/UGATIT-s2a
+env LANG="en_US.UTF-8"
+env LANGUAGE="en_US.UTF-8"
+wsgi-file = web.py
+callable = app
+processes = 8
+threads = 8
+stats = 127.0.0.1:9192
+harakiri = 240
+socket-timeout = 240
+http-timeout = 240
+limit-post = 0
+# important
+lazy-apps = true
