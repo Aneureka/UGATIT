@@ -3,31 +3,29 @@ from flask_script import Manager, Shell
 import requests
 import json
 import os
+import uuid
+
 from main import setup_for_web, eval_for_web
 from utils import build_resp
-import uuid
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 app = Flask(__name__, static_url_path='')
+
 s2a_model = setup_for_web()
 
 
 # config goes here
+APP_NAME = 's2a'
 UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads')
 RESULT_FOLDER = 'results'
 ALLOWED_EXTENSIONS = set(['.txt', '.pdf', '.png', '.jpg', '.jpeg'])
 
-
-@app.route('/s2a/', methods=['GET'])
-def ping2():
-    return 'Ping successfully!'
-
-@app.route('/s2a/ping', methods=['GET'])
+@app.route('/%s/ping' % APP_NAME, methods=['GET'])
 def ping():
     return 'Ping successfully!'
 
-@app.route('/s2a/convert', methods=['POST'])
+@app.route('/%s/convert' % APP_NAME, methods=['POST'])
 def convert():
     # upload
     if 'file' not in request.files:
@@ -43,8 +41,7 @@ def convert():
     file_path = os.path.join(UPLOAD_FOLDER, filename)
     file.save(file_path)
     result_image_path = eval_for_web(s2a_model, file_path)
-    return send_from_directory(RESULT_FOLDER, filename)
-    
+    return os.path.join(RESULT_FOLDER, filename)
 
 if __name__ == "__main__":
     manager = Manager(app)
