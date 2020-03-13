@@ -7,6 +7,7 @@ import uuid
 import shutil
 
 from main import setup_for_web, eval_for_web
+from wechat import wechat_client
 from utils import build_resp
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
@@ -25,9 +26,28 @@ USE_API=True
 if not USE_API:
     s2a_model = setup_for_web()
 
+def check_image(image_path):
+    resp = requests.post(
+        url='https://api.weixin.qq.com/wxa/img_sec_check?access_token=%s' % wechat_client.access_token,
+        files={
+            'media': open(image_path, 'rb')
+        }
+    )
+    # print(resp.status_code)
+    if resp.status_code >= 300:
+        return True
+    data = json.loads(resp.text)
+    # print(data)
+    if data.get('errcode') == 87014:
+        return False
+    else:
+        return True
+
+
 @app.route('/%s/ping' % APP_NAME, methods=['GET'])
 def ping():
     return 'Ping successfully!'
+
 
 @app.route('/%s/convert' % APP_NAME, methods=['POST'])
 def convert():
@@ -44,27 +64,30 @@ def convert():
     filename = '%s%s' % (str(uuid.uuid4()), file_ext)
     file_path = os.path.join(UPLOAD_FOLDER, filename)
     file.save(file_path)
-    if USE_API:
-        resp = requests.post(
-            url=API_HOST,
-            headers={
-                'accept': 'image/png',
-                'X-OVH-Api-Key': API_KEY,
-            },
-            files={
-                'file': open(file_path, 'rb')
-            },
-            timeout=240
-        )
-        # print(resp.text)
-        if resp.status_code >= 300:
-            return 'Something went wrong.'
+    if check_image(file_path): 
+        if USE_API:
+            resp = requests.post(
+                url=API_HOST,
+                headers={
+                    'accept': 'image/png',
+                    'X-OVH-Api-Key': API_KEY,
+                },
+                files={
+                    'file': open(file_path, 'rb')
+                },
+                timeout=240
+            )
+            if resp.status_code >= 300:
+                return build_resp(code=1, msg='Failed to convert image.')
+            else:
+                with open(os.path.join(RESULT_FOLDER, filename), 'wb') as f:
+                    f.write(resp.content)
         else:
-            with open(os.path.join(RESULT_FOLDER, filename), 'wb') as f:
-                f.write(resp.content)
+            result_image_path = eval_for_web(s2a_model, file_path)
+        return os.path.join(RESULT_FOLDER, filename)
     else:
-        result_image_path = eval_for_web(s2a_model, file_path)
-    return os.path.join(RESULT_FOLDER, filename)
+        return build_resp(code=2, msg='Risky content detected.')
+
 
 if __name__ == "__main__":
     manager = Manager(app)

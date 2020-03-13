@@ -8,4 +8,7 @@ export LANGUAGE="en_US.UTF-8"
 export API_HOST="secret"
 export API_KEY="secret"
 
+export APP_ID="secret"
+export APP_SECRET="secret"
+
 uwsgi uwsgi.ini
