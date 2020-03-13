@@ -4,6 +4,7 @@ import requests
 import json
 import os
 import uuid
+import shutil
 
 from main import setup_for_web, eval_for_web
 from utils import build_resp
@@ -12,14 +13,17 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 app = Flask(__name__, static_url_path='')
 
-s2a_model = setup_for_web()
-
-
 # config goes here
 APP_NAME = 's2a'
 UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads')
 RESULT_FOLDER = 'results'
 ALLOWED_EXTENSIONS = set(['.txt', '.pdf', '.png', '.jpg', '.jpeg'])
+API_HOST=os.environ.get('API_HOST')
+API_KEY=os.environ.get('API_KEY')
+USE_API=True
+
+if not USE_API:
+    s2a_model = setup_for_web()
 
 @app.route('/%s/ping' % APP_NAME, methods=['GET'])
 def ping():
@@ -40,7 +44,26 @@ def convert():
     filename = '%s%s' % (str(uuid.uuid4()), file_ext)
     file_path = os.path.join(UPLOAD_FOLDER, filename)
     file.save(file_path)
-    result_image_path = eval_for_web(s2a_model, file_path)
+    if USE_API:
+        resp = requests.post(
+            url=API_HOST,
+            headers={
+                'accept': 'image/png',
+                'X-OVH-Api-Key': API_KEY,
+            },
+            files={
+                'file': open(file_path, 'rb')
+            },
+            timeout=240
+        )
+        # print(resp.text)
+        if resp.status_code >= 300:
+            return 'Something went wrong.'
+        else:
+            with open(os.path.join(RESULT_FOLDER, filename), 'wb') as f:
+                f.write(resp.content)
+    else:
+        result_image_path = eval_for_web(s2a_model, file_path)
     return os.path.join(RESULT_FOLDER, filename)
 
 if __name__ == "__main__":

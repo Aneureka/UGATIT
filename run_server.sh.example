@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
 
 source venv/bin/activate
-export LANG='en_US.UTF-8'
-export LC_ALL='en_US.UTF-8'
+
+export LANG="en_US.UTF-8"
+export LANGUAGE="en_US.UTF-8"
+
+export API_HOST="secret"
+export API_KEY="secret"
 
 uwsgi uwsgi.ini
